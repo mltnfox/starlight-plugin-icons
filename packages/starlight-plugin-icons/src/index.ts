@@ -4,6 +4,7 @@ import type { StarlightIconsOptions, StarlightUserConfigWithIcons } from './type
 import process from 'node:process'
 import starlight from '@astrojs/starlight'
 import { pluginIcon } from './lib/expressive-code'
+import { setCustomFileIcons } from './lib/material-icons'
 import { generateSafelist } from './lib/safelist'
 import { withSidebarIcons } from './lib/sidebar'
 import { StarlightIconsOptionsSchema } from './types'
@@ -18,6 +19,10 @@ export function starlightIconsPlugin(options: StarlightIconsOptions = {}): Starl
     name: 'starlight-plugin-icons',
     hooks: {
       'config:setup': ({ config, updateConfig }) => {
+        if (parsedOptions.customFileIcons) {
+          setCustomFileIcons(parsedOptions.customFileIcons)
+        }
+
         const components: Record<string, string> = { ...(config.components || {}) }
         if (parsedOptions.sidebar) {
           components.Sidebar = 'starlight-plugin-icons/components/starlight/Sidebar.astro'
@@ -55,8 +60,11 @@ export function starlightIconsIntegration(options: StarlightIconsOptions = {}): 
       'astro:config:setup': async ({ logger }) => {
         if (!parsedOptions.extractSafelist)
           return
+        if (parsedOptions.customFileIcons) {
+          setCustomFileIcons(parsedOptions.customFileIcons)
+        }
         logger.info('Generating icon safelist...')
-        await generateSafelist(logger, process.cwd())
+        await generateSafelist(logger, process.cwd(), parsedOptions.customFileIcons)
       },
     },
   }

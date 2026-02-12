@@ -8,3 +8,7 @@
 </p>
 
 **Read the docs**: [docs.rettend.me/starlight-plugin-icons](https://docs.rettend.me/starlight-plugin-icons)
+
+## Fork changes
+
+Adds `customFileIcons` option for mapping file extensions, full filenames, and folder names to custom UnoCSS icon classes, checked before Material Icon Theme.

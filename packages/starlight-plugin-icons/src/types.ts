@@ -19,6 +19,12 @@ export const StarlightIconsOptionsSchema = z
      * @default false
      */
     codeblock: z.boolean().default(false),
+    /**
+     * Maps file extensions (without the leading dot) to UnoCSS icon classes.
+     * These take priority over Material Icon Theme lookups.
+     * @example { 'myext': 'i-custom:my-icon', 'config.special.json': 'i-custom:config', 'folder:assets': 'i-custom:folder-assets' }
+     */
+    customFileIcons: z.record(z.string(), z.string()).optional(),
   })
 
 export type StarlightIconsOptions = z.input<typeof StarlightIconsOptionsSchema>

@@ -9,6 +9,18 @@ const MATERIAL_ICONS_URL = 'https://raw.githubusercontent.com/Rettend/github-mat
 
 let cachedData: MaterialIconsData | null = null
 
+let customFileIconsMap: Record<string, string> | null = null
+
+export function setCustomFileIcons(map: Record<string, string> | undefined) {
+  customFileIconsMap = map ?? null
+  // Persist on globalThis so the map survives across Vite module instances
+  ;(globalThis as any).__spiCustomFileIcons = customFileIconsMap
+}
+
+function getCustomFileIcons(): Record<string, string> | null {
+  return customFileIconsMap ?? (globalThis as any).__spiCustomFileIcons ?? null
+}
+
 async function ensureCacheDir() {
   try {
     await fs.mkdir(CACHE_DIR, { recursive: true })
@@ -137,15 +149,26 @@ export async function getIconDetails(title: string | undefined, language: string
 
 export function resolveFolderIcon(folderName: string, isOpen: boolean) {
   return async function (): Promise<string | undefined> {
+    const lowerFolderName = folderName
+      .trim()
+      .replace(/[\\/]+$/, '')
+      .toLowerCase()
+
+    // Check custom folder icons first
+    const customIcons = getCustomFileIcons()
+    if (customIcons) {
+      const prefix = isOpen ? 'folder-open' : 'folder'
+      const key = `${prefix}:${lowerFolderName}`
+      if (customIcons[key]) {
+        return customIcons[key]
+      }
+    }
+
     const data = await getMaterialIconsData()
     if (!data)
       return
 
     const { materialIcons } = data
-    const lowerFolderName = folderName
-      .trim()
-      .replace(/[\\/]+$/, '')
-      .toLowerCase()
 
     const iconName = isOpen
       ? materialIcons.folderNamesExpanded[lowerFolderName]
@@ -161,6 +184,20 @@ export function resolveFolderIcon(folderName: string, isOpen: boolean) {
 
 export function resolveIcon(fileName: string | undefined, language: string | undefined) {
   return async function (): Promise<string | null> {
+    const customIcons = getCustomFileIcons()
+    if (fileName && customIcons) {
+      const justFileName = fileName.includes('/') ? fileName.split('/').pop()! : fileName
+      const lowerFileName = justFileName.toLowerCase()
+      const longExtension = lowerFileName.split('.').slice(1).join('.')
+      const shortExtension = lowerFileName.split('.').pop() || ''
+
+      for (const key of [lowerFileName, longExtension, shortExtension]) {
+        if (key && customIcons[key]) {
+          return customIcons[key]
+        }
+      }
+    }
+
     const data = await getMaterialIconsData()
     if (!data)
       return null

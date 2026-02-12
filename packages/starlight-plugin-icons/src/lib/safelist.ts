@@ -8,7 +8,7 @@ const codeBlockRegex = /```(?<lang>[a-zA-Z]\w*)?(?:\s[^\n]*?title="(?<title>[^"]
 const fileTreeRegex = /<FileTree>([\s\S]*?)<\/FileTree>/g
 const iconClassRegex = /i-[a-z0-9-]+:[a-z0-9-:./]+/gi
 
-export async function generateSafelist(logger: AstroIntegrationLogger, rootDir: string): Promise<boolean> {
+export async function generateSafelist(logger: AstroIntegrationLogger, rootDir: string, customFileIcons?: Record<string, string>): Promise<boolean> {
   const contentDir = path.join(rootDir, 'src/content')
   const pattern = '**/*.{md,mdx}'
   const files = globSync(pattern, { cwd: contentDir, absolute: true })
@@ -105,6 +105,12 @@ export async function generateSafelist(logger: AstroIntegrationLogger, rootDir: 
       for (const cls of matches) usedIcons.add(cls)
     }
     catch {
+    }
+  }
+
+  if (customFileIcons) {
+    for (const iconClass of Object.values(customFileIcons)) {
+      usedIcons.add(iconClass)
     }
   }
 
